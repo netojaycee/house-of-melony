@@ -12,7 +12,17 @@ function getConfig() {
     return null;
   }
 
-  return { accountId, accessKeyId, secretAccessKey, bucket, publicUrl };
+  const normalizedPublicUrl = /^https?:\/\//.test(publicUrl)
+    ? publicUrl
+    : `https://${publicUrl}`;
+
+  return {
+    accountId,
+    accessKeyId,
+    secretAccessKey,
+    bucket,
+    publicUrl: normalizedPublicUrl,
+  };
 }
 
 export function isR2Configured(): boolean {

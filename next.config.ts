@@ -1,5 +1,16 @@
 import type { NextConfig } from "next";
 
+function r2Hostname(): string | null {
+  const raw = process.env.R2_PUBLIC_URL;
+  if (!raw) return null;
+  const withProtocol = /^https?:\/\//.test(raw) ? raw : `https://${raw}`;
+  try {
+    return new URL(withProtocol).hostname;
+  } catch {
+    return null;
+  }
+}
+
 const isDev = process.env.NODE_ENV !== "production";
 
 // React/Turbopack need eval() in dev for Fast Refresh and stack traces;
@@ -36,7 +47,14 @@ const securityHeaders = [
   },
 ];
 
+const r2Host = r2Hostname();
+
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: r2Host
+      ? [{ protocol: "https", hostname: r2Host }]
+      : [],
+  },
   async headers() {
     return [
       {
