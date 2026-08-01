@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatNaira } from "@/lib/data/product";
+import { siteButtonClass } from "@/lib/site-button";
 
 type Variant = {
   id: string;
@@ -105,11 +106,11 @@ export function VariantSelector({
         type="button"
         disabled={soldOut}
         onClick={handleBuyNow}
-        className={`rounded-full px-8 py-4 text-lg font-medium transition-colors ${
+        className={
           soldOut
-            ? "cursor-not-allowed bg-melony-gold/20 text-melony-cream/40"
-            : "bg-melony-gold text-melony-black hover:bg-melony-gold-light"
-        }`}
+            ? "cursor-not-allowed rounded-full bg-melony-gold/20 px-8 py-4 text-lg font-medium text-melony-cream/40"
+            : siteButtonClass("primary", "lg")
+        }
       >
         {soldOut ? "Sold out" : `Buy now — ${formatNaira(priceKobo * qty)}`}
       </button>

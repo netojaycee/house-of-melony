@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getActiveProduct, formatNaira } from "@/lib/data/product";
 import { getSiteSettings } from "@/lib/data/settings";
 import { ImagePlaceholder } from "@/components/product/image-placeholder";
+import { siteButtonClass } from "@/lib/site-button";
 
 export const metadata = { alternates: { canonical: "/" } };
 
@@ -35,7 +36,7 @@ export default async function Home() {
         {product && (
           <Link
             href={`/product/${product.slug}`}
-            className="mt-4 rounded-full bg-melony-gold px-8 py-3 font-medium text-melony-black transition-colors hover:bg-melony-gold-light"
+            className={`mt-4 ${siteButtonClass("primary", "lg")}`}
           >
             Shop the set
           </Link>
@@ -95,7 +96,7 @@ export default async function Home() {
               </p>
               <Link
                 href={`/product/${product.slug}`}
-                className="mx-auto rounded-full border border-melony-gold px-6 py-3 text-melony-gold transition-colors hover:bg-melony-gold hover:text-melony-black sm:mx-0"
+                className={`mx-auto sm:mx-0 ${siteButtonClass("secondary", "md")}`}
               >
                 View details &amp; buy
               </Link>

@@ -9,6 +9,7 @@ import {
   checkoutSchema,
   type CheckoutFormValues,
 } from "@/lib/validation/checkout";
+import { siteButtonClass } from "@/lib/site-button";
 
 const inputClass =
   "w-full rounded-lg border border-melony-gold/25 bg-melony-black px-4 py-3 text-melony-cream placeholder:text-melony-cream/30 focus:border-melony-gold focus:outline-none";
@@ -146,7 +147,7 @@ export function CheckoutForm({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="mt-2 rounded-full bg-melony-gold px-8 py-4 text-lg font-medium text-melony-black transition-colors hover:bg-melony-gold-light disabled:cursor-not-allowed disabled:opacity-60"
+        className={`mt-2 ${siteButtonClass("primary", "lg")}`}
       >
         {isSubmitting ? "Preparing payment…" : "Continue to payment"}
       </button>
