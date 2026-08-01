@@ -9,7 +9,8 @@ import OrderStatusUpdateEmail from "./templates/order-status-update";
  * or any other custom domain).
  */
 function emailFrom(): string {
-  return process.env.EMAIL_FROM ?? "House of Melony <onboarding@resend.dev>";
+  const address = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+  return `House of Melony <${address}>`;
 }
 
 type OrderEmailPayload = {
