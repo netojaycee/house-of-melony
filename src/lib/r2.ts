@@ -58,14 +58,25 @@ export async function uploadProductImage(
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const s3 = getClient(config.accountId, config.accessKeyId, config.secretAccessKey);
-  await s3.send(
-    new PutObjectCommand({
-      Bucket: config.bucket,
-      Key: key,
-      Body: buffer,
-      ContentType: file.type,
-    }),
-  );
+  try {
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: config.bucket,
+        Key: key,
+        Body: buffer,
+        ContentType: file.type,
+      }),
+    );
+  } catch (err) {
+    console.error("R2 upload failed:", err);
+    const name = err instanceof Error ? err.name : "";
+    if (name === "NoSuchBucket") {
+      return {
+        error: `R2 bucket "${config.bucket}" doesn't exist — check R2_BUCKET_NAME.`,
+      };
+    }
+    return { error: "Upload failed. Please check R2 configuration and try again." };
+  }
 
   return { url: `${config.publicUrl.replace(/\/$/, "")}/${key}` };
 }
@@ -79,5 +90,9 @@ export async function deleteProductImage(url: string): Promise<void> {
 
   const key = url.slice(prefix.length);
   const s3 = getClient(config.accountId, config.accessKeyId, config.secretAccessKey);
-  await s3.send(new DeleteObjectCommand({ Bucket: config.bucket, Key: key }));
+  try {
+    await s3.send(new DeleteObjectCommand({ Bucket: config.bucket, Key: key }));
+  } catch (err) {
+    console.error("R2 delete failed:", err);
+  }
 }
