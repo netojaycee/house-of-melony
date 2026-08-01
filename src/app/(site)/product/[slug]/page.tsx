@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getProductBySlug, formatNaira } from "@/lib/data/product";
 import { VariantSelector } from "@/components/product/variant-selector";
 import { ProductGallery } from "@/components/product/product-gallery";
+import { FadeIn } from "@/components/motion/reveal";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -66,11 +67,11 @@ export default async function ProductPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="w-full max-w-xl shrink-0 sm:w-1/2">
+      <FadeIn className="w-full max-w-xl shrink-0 sm:w-1/2">
         <ProductGallery images={product.images} alt={product.name} />
-      </div>
+      </FadeIn>
 
-      <div className="flex flex-1 flex-col gap-6">
+      <FadeIn delay={0.1} className="flex flex-1 flex-col gap-6">
         <div>
           <p className="text-sm tracking-[0.25em] text-melony-gold uppercase">
             {product.tagline}
@@ -95,7 +96,7 @@ export default async function ProductPage({
         <div className="mt-4 whitespace-pre-line border-t border-melony-gold/15 pt-6 text-melony-cream/70">
           {product.story}
         </div>
-      </div>
+      </FadeIn>
     </main>
   );
 }

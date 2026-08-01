@@ -1,9 +1,10 @@
 import Image from "next/image";
-import Link from "next/link";
 import { getActiveProduct, formatNaira } from "@/lib/data/product";
 import { getSiteSettings } from "@/lib/data/settings";
 import { ImagePlaceholder } from "@/components/product/image-placeholder";
 import { siteButtonClass } from "@/lib/site-button";
+import { FadeIn, RevealOnScroll } from "@/components/motion/reveal";
+import { TapLink } from "@/components/motion/tap-link";
 
 export const metadata = { alternates: { canonical: "/" } };
 
@@ -16,15 +17,17 @@ export default async function Home() {
   return (
     <main className="flex flex-1 flex-col">
       <section className="flex flex-col items-center gap-8 px-6 pt-20 pb-24 text-center sm:pt-28">
-        <Image
-          src="/brand/logo.jpeg"
-          alt="House of Melony"
-          width={120}
-          height={120}
-          className="rounded-full border border-melony-gold/30"
-          priority
-        />
-        <div className="flex flex-col items-center gap-4">
+        <FadeIn>
+          <Image
+            src="/brand/logo.jpeg"
+            alt="House of Melony"
+            width={120}
+            height={120}
+            className="rounded-full border border-melony-gold/30"
+            priority
+          />
+        </FadeIn>
+        <FadeIn delay={0.1} className="flex flex-col items-center gap-4">
           <p className="text-sm tracking-[0.3em] text-melony-gold uppercase">
             House of Melony
           </p>
@@ -32,19 +35,23 @@ export default async function Home() {
             {settings.heroHeadline}
           </h1>
           <p className="max-w-md text-melony-cream/70">{settings.heroSubcopy}</p>
-        </div>
+        </FadeIn>
         {product && (
-          <Link
-            href={`/product/${product.slug}`}
-            className={`mt-4 ${siteButtonClass("primary", "lg")}`}
-          >
-            Shop the set
-          </Link>
+          <FadeIn delay={0.2}>
+            <TapLink
+              href={`/product/${product.slug}`}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className={`mt-4 ${siteButtonClass("primary", "lg")}`}
+            >
+              Shop the set
+            </TapLink>
+          </FadeIn>
         )}
       </section>
 
       <section className="border-t border-melony-gold/10 bg-melony-black-soft px-6 py-20">
-        <div className="mx-auto flex max-w-3xl flex-col gap-6 text-melony-cream/85">
+        <RevealOnScroll className="mx-auto flex max-w-3xl flex-col gap-6 text-melony-cream/85">
           <p className="font-display text-sm tracking-[0.3em] text-melony-gold uppercase">
             The story
           </p>
@@ -65,12 +72,12 @@ export default async function Home() {
             Built to last beyond a season, the way a hill stands no matter
             what moves around it.
           </p>
-        </div>
+        </RevealOnScroll>
       </section>
 
       {product && (
         <section className="px-6 py-20">
-          <div className="mx-auto flex max-w-5xl flex-col items-center gap-10 rounded-2xl border border-melony-gold/15 bg-melony-black-soft p-10 sm:flex-row sm:p-14">
+          <RevealOnScroll className="mx-auto flex max-w-5xl flex-col items-center gap-10 rounded-2xl border border-melony-gold/15 bg-melony-black-soft p-10 sm:flex-row sm:p-14">
             <div className="relative aspect-square w-full max-w-xs shrink-0 overflow-hidden rounded-xl border border-melony-gold/20">
               {product.images[0] ? (
                 <Image
@@ -94,14 +101,16 @@ export default async function Home() {
               <p className="text-melony-cream/70">
                 {formatNaira(product.priceKobo)} · Limited pieces per launch
               </p>
-              <Link
+              <TapLink
                 href={`/product/${product.slug}`}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 className={`mx-auto sm:mx-0 ${siteButtonClass("secondary", "md")}`}
               >
                 View details &amp; buy
-              </Link>
+              </TapLink>
             </div>
-          </div>
+          </RevealOnScroll>
         </section>
       )}
     </main>

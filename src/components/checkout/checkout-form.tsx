@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { motion } from "motion/react";
 import { createOrder } from "@/app/actions/orders";
 import {
   checkoutSchema,
@@ -144,13 +145,15 @@ export function CheckoutForm({
 
       {rootError && <p className={errorClass}>{rootError}</p>}
 
-      <button
+      <motion.button
         type="submit"
         disabled={isSubmitting}
+        whileHover={isSubmitting ? undefined : { scale: 1.02 }}
+        whileTap={isSubmitting ? undefined : { scale: 0.98 }}
         className={`mt-2 ${siteButtonClass("primary", "lg")}`}
       >
         {isSubmitting ? "Preparing payment…" : "Continue to payment"}
-      </button>
+      </motion.button>
     </form>
   );
 }

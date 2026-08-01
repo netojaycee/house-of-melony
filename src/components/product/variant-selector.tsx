@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "motion/react";
 import { formatNaira } from "@/lib/data/product";
 import { siteButtonClass } from "@/lib/site-button";
 
@@ -102,10 +103,12 @@ export function VariantSelector({
         </div>
       )}
 
-      <button
+      <motion.button
         type="button"
         disabled={soldOut}
         onClick={handleBuyNow}
+        whileHover={soldOut ? undefined : { scale: 1.03 }}
+        whileTap={soldOut ? undefined : { scale: 0.97 }}
         className={
           soldOut
             ? "cursor-not-allowed rounded-full bg-melony-gold/20 px-8 py-4 text-lg font-medium text-melony-cream/40"
@@ -113,7 +116,7 @@ export function VariantSelector({
         }
       >
         {soldOut ? "Sold out" : `Buy now — ${formatNaira(priceKobo * qty)}`}
-      </button>
+      </motion.button>
     </div>
   );
 }
