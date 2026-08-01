@@ -14,6 +14,9 @@ importers:
       '@neondatabase/serverless':
         specifier: ^1.1.0
         version: 1.1.0
+      '@paystack/inline-js':
+        specifier: ^2.24.0
+        version: 2.24.0
       '@upstash/ratelimit':
         specifier: ^2.0.8
         version: 2.0.8(@upstash/redis@1.38.1)
@@ -1114,6 +1117,10 @@ packages:
 
   '@panva/hkdf@1.2.1':
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
+
+  '@paystack/inline-js@2.24.0':
+    resolution: {integrity: sha512-78O19c7voo02eD1w9qHh74Snuy4u8R301LhHaiPZdNnRv4jlcWCKKzaGslanjwhyaftaSlhaIlV3Cqi6MGIJIQ==}
+    engines: {node: '>= 22.0.0'}
 
   '@react-email/render@2.1.0':
     resolution: {integrity: sha512-F+zE3O6d6sW6Aj2UjvZAA17R7tJKM7kcq2mgV6k4HCT8jeLLFaVP2txMtH1lgqYFRMZ0Gxsd37q2PRyiXLXXxA==}
@@ -4753,6 +4760,8 @@ snapshots:
   '@nolyfill/is-core-module@1.0.39': {}
 
   '@panva/hkdf@1.2.1': {}
+
+  '@paystack/inline-js@2.24.0': {}
 
   '@react-email/render@2.1.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
