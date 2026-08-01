@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { getVariantWithProduct, formatNaira } from "@/lib/data/product";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 
-export const metadata = { title: "Checkout" };
+export const metadata = {
+  title: "Checkout",
+  robots: { index: false, follow: false },
+};
 
 export default async function CheckoutPage({
   searchParams,

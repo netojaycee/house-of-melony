@@ -3,7 +3,10 @@ import { getOrderByReference } from "@/lib/data/orders";
 import { formatNaira } from "@/lib/data/product";
 import { PendingPoller } from "@/components/order/pending-poller";
 
-export const metadata = { title: "Order status" };
+export const metadata = {
+  title: "Order status",
+  robots: { index: false, follow: false },
+};
 
 const statusCopy: Record<string, { heading: string; body: string }> = {
   pending: {

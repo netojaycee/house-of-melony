@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { getProductBySlug, formatNaira } from "@/lib/data/product";
 import { VariantSelector } from "@/components/product/variant-selector";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export async function generateMetadata({
   params,
 }: {
@@ -18,6 +20,7 @@ export async function generateMetadata({
   return {
     title: product.name,
     description,
+    alternates: { canonical: `/product/${product.slug}` },
     openGraph: {
       title: `${product.name} · House of Melony`,
       description,
@@ -35,8 +38,34 @@ export default async function ProductPage({
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
+  const totalStock = product.variants.reduce((sum, v) => sum + v.stockQty, 0);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.story,
+    image: product.images.map((img) =>
+      img.startsWith("http") ? img : `${siteUrl}${img}`,
+    ),
+    brand: { "@type": "Brand", name: "House of Melony" },
+    offers: {
+      "@type": "Offer",
+      url: `${siteUrl}/product/${product.slug}`,
+      priceCurrency: product.currency,
+      price: (product.priceKobo / 100).toFixed(2),
+      availability:
+        totalStock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+    },
+  };
+
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-6 py-16 sm:flex-row sm:py-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="relative aspect-square w-full max-w-xl shrink-0 overflow-hidden rounded-2xl border border-melony-gold/20 bg-melony-black-soft sm:w-1/2">
         <Image
           src={product.images[0] ?? "/brand/logo.jpeg"}

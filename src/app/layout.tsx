@@ -15,14 +15,31 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const title = "House of Melony — Òkè Wúrà Set";
+const description =
+  "Òkè Wúrà — a handcrafted iro & buba adire set from House of Melony. Hand-cut, hand-finished, limited pieces per launch.";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://houseofmelony.vercel.app"),
+  metadataBase: new URL(siteUrl),
   title: {
-    default: "House of Melony — Òkè Wúrà Set",
+    default: title,
     template: "%s · House of Melony",
   },
-  description:
-    "Òkè Wúrà — a handcrafted iro & buba adire set from House of Melony. Hand-cut, hand-finished, limited pieces per launch.",
+  description,
+  openGraph: {
+    title,
+    description,
+    siteName: "House of Melony",
+    type: "website",
+    images: ["/brand/logo.jpeg"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: ["/brand/logo.jpeg"],
+  },
 };
 
 export default function RootLayout({

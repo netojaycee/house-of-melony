@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getActiveProduct, formatNaira } from "@/lib/data/product";
 import { getSiteSettings } from "@/lib/data/settings";
 
+export const metadata = { alternates: { canonical: "/" } };
+
 export default async function Home() {
   const [product, settings] = await Promise.all([
     getActiveProduct(),
