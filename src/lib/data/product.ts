@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { products, productVariants } from "@/lib/db/schema";
 import { isUuid } from "@/lib/utils";
 
@@ -12,7 +12,12 @@ export async function getActiveProduct() {
   const variants = await db
     .select()
     .from(productVariants)
-    .where(eq(productVariants.productId, product.id))
+    .where(
+      and(
+        eq(productVariants.productId, product.id),
+        eq(productVariants.active, true),
+      ),
+    )
     .orderBy(asc(productVariants.sortOrder));
 
   return { ...product, variants };
@@ -31,7 +36,12 @@ export async function getProductBySlug(slug: string) {
   const variants = await db
     .select()
     .from(productVariants)
-    .where(eq(productVariants.productId, product.id))
+    .where(
+      and(
+        eq(productVariants.productId, product.id),
+        eq(productVariants.active, true),
+      ),
+    )
     .orderBy(asc(productVariants.sortOrder));
 
   return { ...product, variants };
@@ -41,7 +51,7 @@ export async function getVariantWithProduct(variantId: string) {
   if (!isUuid(variantId)) return null;
 
   const variant = await db.query.productVariants.findFirst({
-    where: eq(productVariants.id, variantId),
+    where: and(eq(productVariants.id, variantId), eq(productVariants.active, true)),
   });
   if (!variant) return null;
 
@@ -53,6 +63,7 @@ export async function getVariantWithProduct(variantId: string) {
   return { variant, product };
 }
 
+/** Admin-only: includes inactive variants so they can be re-enabled. */
 export async function getFirstProduct() {
   const product = await db.query.products.findFirst();
   if (!product) return null;

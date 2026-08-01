@@ -8,8 +8,6 @@ const initialState: UpdateProductState = { status: "idle" };
 const inputClass =
   "w-full rounded-lg border border-melony-gold/25 bg-melony-black px-4 py-3 text-melony-cream placeholder:text-melony-cream/30 focus:border-melony-gold focus:outline-none";
 
-type Variant = { id: string; label: string; stockQty: number };
-
 export function ProductForm({
   productId,
   name,
@@ -17,8 +15,6 @@ export function ProductForm({
   story,
   priceNaira,
   active,
-  images,
-  variants,
 }: {
   productId: string;
   name: string;
@@ -26,8 +22,6 @@ export function ProductForm({
   story: string;
   priceNaira: number;
   active: boolean;
-  images: string[];
-  variants: Variant[];
 }) {
   const [state, formAction, isPending] = useActionState(
     updateProduct,
@@ -76,43 +70,10 @@ export function ProductForm({
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-sm text-melony-cream/60">
-        Image URLs (one per line — first is the main photo)
-        <textarea
-          name="images"
-          defaultValue={images.join("\n")}
-          rows={3}
-          className={inputClass}
-        />
-      </label>
-
       <label className="flex items-center gap-2 text-sm text-melony-cream/80">
         <input type="checkbox" name="active" defaultChecked={active} />
         Listed / active
       </label>
-
-      <div className="mt-4 flex flex-col gap-4 border-t border-melony-gold/15 pt-4">
-        <p className="text-sm tracking-[0.2em] text-melony-gold uppercase">
-          Variants
-        </p>
-        {variants.map((variant) => (
-          <div key={variant.id} className="flex gap-3">
-            <input type="hidden" name="variantId" value={variant.id} />
-            <input
-              name={`variantLabel-${variant.id}`}
-              defaultValue={variant.label}
-              className={inputClass}
-            />
-            <input
-              name={`variantStock-${variant.id}`}
-              type="number"
-              min="0"
-              defaultValue={variant.stockQty}
-              className={`${inputClass} w-32`}
-            />
-          </div>
-        ))}
-      </div>
 
       {state.status !== "idle" && (
         <p

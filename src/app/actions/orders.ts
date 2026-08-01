@@ -46,7 +46,7 @@ export async function createOrder(input: unknown): Promise<CreateOrderResult> {
   const variant = await db.query.productVariants.findFirst({
     where: eq(productVariants.id, parsedInput.variantId),
   });
-  if (!variant) {
+  if (!variant || !variant.active) {
     return { status: "error", message: "That size is no longer available." };
   }
   if (variant.stockQty < parsedInput.qty) {

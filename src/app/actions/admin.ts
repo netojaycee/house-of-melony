@@ -12,10 +12,17 @@ import {
   siteSettings,
   type OrderStatus,
 } from "@/lib/db/schema";
+import { uploadProductImage, deleteProductImage } from "@/lib/r2";
 
 async function requireAdmin() {
   const session = await auth();
   if (!session) throw new Error("Not authenticated");
+}
+
+function revalidateProductPages() {
+  revalidatePath("/");
+  revalidatePath("/admin/product");
+  revalidatePath("/product/[slug]", "page");
 }
 
 export async function updateOrderStatus(orderId: string, status: OrderStatus) {
@@ -45,11 +52,6 @@ export async function updateProduct(
   const story = String(formData.get("story") ?? "").trim();
   const priceNaira = Number(formData.get("priceNaira"));
   const active = formData.get("active") === "on";
-  const imagesRaw = String(formData.get("images") ?? "");
-  const images = imagesRaw
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
 
   if (!name || !story || !Number.isFinite(priceNaira) || priceNaira <= 0) {
     return { status: "error", message: "Please fill in all required fields." };
@@ -63,27 +65,118 @@ export async function updateProduct(
       story,
       priceKobo: Math.round(priceNaira * 100),
       active,
-      images,
       updatedAt: new Date(),
     })
     .where(eq(products.id, productId));
 
-  const variantIds = formData.getAll("variantId") as string[];
-  for (const variantId of variantIds) {
-    const label = String(formData.get(`variantLabel-${variantId}`) ?? "").trim();
-    const stockQty = Number(formData.get(`variantStock-${variantId}`));
-    if (!label || !Number.isFinite(stockQty)) continue;
-    await db
-      .update(productVariants)
-      .set({ label, stockQty: Math.max(0, Math.round(stockQty)) })
-      .where(eq(productVariants.id, variantId));
-  }
-
-  revalidatePath("/");
-  revalidatePath("/admin/product");
-  revalidatePath("/product/[slug]", "page");
+  revalidateProductPages();
 
   return { status: "success", message: "Product updated." };
+}
+
+// --- Images ---------------------------------------------------------------
+
+export type UploadImageResult = { status: "success" } | { status: "error"; message: string };
+
+export async function uploadProductImageAction(
+  productId: string,
+  formData: FormData,
+): Promise<UploadImageResult> {
+  await requireAdmin();
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { status: "error", message: "No file provided." };
+  }
+
+  const result = await uploadProductImage(file);
+  if ("error" in result) {
+    return { status: "error", message: result.error };
+  }
+
+  const product = await db.query.products.findFirst({ where: eq(products.id, productId) });
+  if (!product) return { status: "error", message: "Product not found." };
+
+  await db
+    .update(products)
+    .set({ images: [...product.images, result.url], updatedAt: new Date() })
+    .where(eq(products.id, productId));
+
+  revalidateProductPages();
+
+  return { status: "success" };
+}
+
+export async function removeProductImageAction(productId: string, url: string) {
+  await requireAdmin();
+
+  const product = await db.query.products.findFirst({ where: eq(products.id, productId) });
+  if (!product) return;
+
+  await db
+    .update(products)
+    .set({ images: product.images.filter((img) => img !== url), updatedAt: new Date() })
+    .where(eq(products.id, productId));
+
+  await deleteProductImage(url);
+  revalidateProductPages();
+}
+
+// --- Variants ---------------------------------------------------------------
+
+function generateSku(): string {
+  return `VAR-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+}
+
+export async function addVariantAction(
+  productId: string,
+  label: string,
+  stockQty: number,
+) {
+  await requireAdmin();
+  if (!label.trim()) throw new Error("Label is required");
+
+  const existing = await db
+    .select({ sortOrder: productVariants.sortOrder })
+    .from(productVariants)
+    .where(eq(productVariants.productId, productId));
+  const nextSort = existing.reduce((max, v) => Math.max(max, v.sortOrder), 0) + 1;
+
+  await db.insert(productVariants).values({
+    productId,
+    label: label.trim(),
+    sku: generateSku(),
+    stockQty: Math.max(0, Math.round(stockQty)),
+    sortOrder: nextSort,
+    active: true,
+  });
+
+  revalidateProductPages();
+}
+
+export async function updateVariantAction(
+  variantId: string,
+  label: string,
+  stockQty: number,
+) {
+  await requireAdmin();
+  if (!label.trim()) throw new Error("Label is required");
+
+  await db
+    .update(productVariants)
+    .set({ label: label.trim(), stockQty: Math.max(0, Math.round(stockQty)) })
+    .where(eq(productVariants.id, variantId));
+
+  revalidateProductPages();
+}
+
+export async function setVariantActiveAction(variantId: string, active: boolean) {
+  await requireAdmin();
+  await db
+    .update(productVariants)
+    .set({ active })
+    .where(eq(productVariants.id, variantId));
+  revalidateProductPages();
 }
 
 export type UpdateSettingsState = { status: "idle" | "success" | "error"; message?: string };

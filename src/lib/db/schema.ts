@@ -31,6 +31,8 @@ export const productVariants = pgTable("product_variants", {
   sku: text("sku").notNull().unique(),
   stockQty: integer("stock_qty").notNull().default(0),
   sortOrder: integer("sort_order").notNull().default(0),
+  // Soft-disable instead of deleting so past orders keep a valid FK.
+  active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

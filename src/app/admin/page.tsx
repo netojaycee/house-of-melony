@@ -1,15 +1,24 @@
 import Link from "next/link";
 import { listOrders } from "@/lib/data/orders";
 import { formatNaira } from "@/lib/data/product";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 const paidStatuses = new Set(["paid", "fulfilled", "shipped"]);
 
-const statusStyles: Record<string, string> = {
-  pending: "text-melony-cream/50",
-  paid: "text-melony-gold",
-  fulfilled: "text-melony-gold-light",
-  shipped: "text-green-400",
-  failed: "text-red-400",
+const statusVariants: Record<string, string> = {
+  pending: "bg-melony-cream/10 text-melony-cream/70",
+  paid: "bg-melony-gold/15 text-melony-gold",
+  fulfilled: "bg-melony-gold-light/15 text-melony-gold-light",
+  shipped: "bg-green-500/15 text-green-400",
+  failed: "bg-red-500/15 text-red-400",
 };
 
 export default async function AdminOrdersPage() {
@@ -18,78 +27,88 @@ export default async function AdminOrdersPage() {
   const paidOrders = allOrders.filter((o) => paidStatuses.has(o.status));
   const revenueKobo = paidOrders.reduce((sum, o) => sum + o.amountKobo, 0);
 
+  const stats = [
+    { label: "Total orders", value: allOrders.length },
+    { label: "Paid", value: paidOrders.length },
+    { label: "Revenue", value: formatNaira(revenueKobo) },
+  ];
+
   return (
     <div className="flex flex-col gap-8">
       <div>
         <h1 className="font-display text-2xl text-melony-cream">Orders</h1>
-        <div className="mt-4 flex gap-6 text-sm text-melony-cream/70">
-          <p>
-            <span className="text-melony-gold">{allOrders.length}</span> total
-            orders
-          </p>
-          <p>
-            <span className="text-melony-gold">{paidOrders.length}</span> paid
-          </p>
-          <p>
-            <span className="text-melony-gold">
-              {formatNaira(revenueKobo)}
-            </span>{" "}
-            revenue
-          </p>
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {stats.map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-xl border border-melony-gold/15 bg-melony-black-soft p-4"
+            >
+              <p className="text-xs tracking-[0.15em] text-melony-cream/50 uppercase">
+                {stat.label}
+              </p>
+              <p className="font-display mt-1 text-2xl text-melony-gold">
+                {stat.value}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-melony-gold/15">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-melony-gold/15 text-melony-cream/50">
-            <tr>
-              <th className="px-4 py-3 font-normal">Order</th>
-              <th className="px-4 py-3 font-normal">Customer</th>
-              <th className="px-4 py-3 font-normal">Amount</th>
-              <th className="px-4 py-3 font-normal">Status</th>
-              <th className="px-4 py-3 font-normal">Date</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow className="border-melony-gold/15 hover:bg-transparent">
+              <TableHead className="text-melony-cream/50">Order</TableHead>
+              <TableHead className="text-melony-cream/50">Customer</TableHead>
+              <TableHead className="text-melony-cream/50">Amount</TableHead>
+              <TableHead className="text-melony-cream/50">Status</TableHead>
+              <TableHead className="text-melony-cream/50">Date</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {allOrders.map((order) => (
-              <tr
+              <TableRow
                 key={order.id}
-                className="border-b border-melony-gold/10 last:border-0"
+                className="border-melony-gold/10 hover:bg-melony-gold/5"
               >
-                <td className="px-4 py-3">
+                <TableCell>
                   <Link
                     href={`/admin/orders/${order.id}`}
                     className="text-melony-cream hover:text-melony-gold"
                   >
                     {order.orderNumber}
                   </Link>
-                </td>
-                <td className="px-4 py-3 text-melony-cream/80">
+                </TableCell>
+                <TableCell className="text-melony-cream/80">
                   {order.customerName}
-                </td>
-                <td className="px-4 py-3 text-melony-cream/80">
+                </TableCell>
+                <TableCell className="text-melony-cream/80">
                   {formatNaira(order.amountKobo)}
-                </td>
-                <td className={`px-4 py-3 ${statusStyles[order.status] ?? ""}`}>
-                  {order.status}
-                </td>
-                <td className="px-4 py-3 text-melony-cream/50">
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    className={`${statusVariants[order.status] ?? ""} border-0`}
+                  >
+                    {order.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-melony-cream/50">
                   {order.createdAt.toLocaleDateString("en-NG")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
             {allOrders.length === 0 && (
-              <tr>
-                <td
+              <TableRow className="hover:bg-transparent">
+                <TableCell
                   colSpan={5}
-                  className="px-4 py-8 text-center text-melony-cream/40"
+                  className="py-8 text-center text-melony-cream/40"
                 >
                   No orders yet.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
