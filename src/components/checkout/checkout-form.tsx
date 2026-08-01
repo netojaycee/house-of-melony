@@ -1,13 +1,18 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { createOrder, type CreateOrderState } from "@/app/actions/orders";
-
-const initialState: CreateOrderState = { status: "idle" };
+import { createOrder } from "@/app/actions/orders";
+import {
+  checkoutSchema,
+  type CheckoutFormValues,
+} from "@/lib/validation/checkout";
 
 const inputClass =
   "w-full rounded-lg border border-melony-gold/25 bg-melony-black px-4 py-3 text-melony-cream placeholder:text-melony-cream/30 focus:border-melony-gold focus:outline-none";
+const errorClass = "mt-1 text-sm text-red-400";
 
 export function CheckoutForm({
   variantId,
@@ -16,107 +21,134 @@ export function CheckoutForm({
   variantId: string;
   qty: number;
 }) {
-  const [state, formAction, isPending] = useActionState(
-    createOrder,
-    initialState,
-  );
   const router = useRouter();
   const launchedRef = useRef<string | null>(null);
+  const [rootError, setRootError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (state.status !== "success") return;
-    if (launchedRef.current === state.reference) return;
-    launchedRef.current = state.reference;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<CheckoutFormValues>({
+    resolver: zodResolver(checkoutSchema),
+    defaultValues: { variantId, qty, notes: "" },
+  });
 
-    let cancelled = false;
+  async function onSubmit(data: CheckoutFormValues) {
+    setRootError(null);
+    const result = await createOrder(data);
 
-    (async () => {
-      const { default: PaystackPop } = await import("@paystack/inline-js");
-      if (cancelled) return;
+    if (result.status === "error") {
+      setRootError(result.message);
+      return;
+    }
 
-      const popup = new PaystackPop();
-      popup.newTransaction({
-        key: state.publicKey,
-        email: state.email,
-        amount: state.amountKobo,
-        ref: state.reference,
-        currency: "NGN",
-        onSuccess: () => {
-          router.push(`/order/${state.reference}`);
-        },
-        onCancel: () => {
-          router.push(`/order/${state.reference}`);
-        },
-      });
-    })();
+    if (launchedRef.current === result.reference) return;
+    launchedRef.current = result.reference;
 
-    return () => {
-      cancelled = true;
-    };
-  }, [state, router]);
+    const { default: PaystackPop } = await import("@paystack/inline-js");
+    const popup = new PaystackPop();
+    popup.newTransaction({
+      key: result.publicKey,
+      email: result.email,
+      amount: result.amountKobo,
+      ref: result.reference,
+      currency: "NGN",
+      onSuccess: () => {
+        router.push(`/order/${result.reference}`);
+      },
+      onCancel: () => {
+        router.push(`/order/${result.reference}`);
+      },
+    });
+  }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
-      <input type="hidden" name="variantId" value={variantId} />
-      <input type="hidden" name="qty" value={qty} />
-
-      <input
-        name="customerName"
-        placeholder="Full name"
-        required
-        className={inputClass}
-      />
-      <input
-        name="email"
-        type="email"
-        placeholder="Email address"
-        required
-        className={inputClass}
-      />
-      <input
-        name="phone"
-        type="tel"
-        placeholder="Phone number (e.g. 08012345678)"
-        required
-        className={inputClass}
-      />
-      <input
-        name="deliveryAddress"
-        placeholder="Delivery address"
-        required
-        className={inputClass}
-      />
-      <div className="flex gap-4">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      className="flex flex-col gap-4"
+    >
+      <div>
         <input
-          name="deliveryCity"
-          placeholder="City"
-          required
+          {...register("customerName")}
+          placeholder="Full name"
           className={inputClass}
         />
-        <input
-          name="deliveryState"
-          placeholder="State"
-          required
-          className={inputClass}
-        />
+        {errors.customerName && (
+          <p className={errorClass}>{errors.customerName.message}</p>
+        )}
       </div>
+
+      <div>
+        <input
+          {...register("email")}
+          type="email"
+          placeholder="Email address"
+          className={inputClass}
+        />
+        {errors.email && <p className={errorClass}>{errors.email.message}</p>}
+      </div>
+
+      <div>
+        <input
+          {...register("phone")}
+          type="tel"
+          placeholder="Phone number (e.g. 08012345678)"
+          className={inputClass}
+        />
+        {errors.phone && <p className={errorClass}>{errors.phone.message}</p>}
+      </div>
+
+      <div>
+        <input
+          {...register("deliveryAddress")}
+          placeholder="Delivery address"
+          className={inputClass}
+        />
+        {errors.deliveryAddress && (
+          <p className={errorClass}>{errors.deliveryAddress.message}</p>
+        )}
+      </div>
+
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <input
+            {...register("deliveryCity")}
+            placeholder="City"
+            className={inputClass}
+          />
+          {errors.deliveryCity && (
+            <p className={errorClass}>{errors.deliveryCity.message}</p>
+          )}
+        </div>
+        <div className="flex-1">
+          <input
+            {...register("deliveryState")}
+            placeholder="State"
+            className={inputClass}
+          />
+          {errors.deliveryState && (
+            <p className={errorClass}>{errors.deliveryState.message}</p>
+          )}
+        </div>
+      </div>
+
       <textarea
-        name="notes"
+        {...register("notes")}
         placeholder="Notes (optional)"
         rows={3}
         className={inputClass}
       />
 
-      {state.status === "error" && (
-        <p className="text-sm text-red-400">{state.message}</p>
-      )}
+      {rootError && <p className={errorClass}>{rootError}</p>}
 
       <button
         type="submit"
-        disabled={isPending}
+        disabled={isSubmitting}
         className="mt-2 rounded-full bg-melony-gold px-8 py-4 text-lg font-medium text-melony-black transition-colors hover:bg-melony-gold-light disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isPending ? "Preparing payment…" : "Continue to payment"}
+        {isSubmitting ? "Preparing payment…" : "Continue to payment"}
       </button>
     </form>
   );

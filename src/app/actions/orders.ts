@@ -8,8 +8,7 @@ import { checkoutSchema } from "@/lib/validation/checkout";
 import { generateOrderNumber, generatePaystackReference } from "@/lib/order-number";
 import { checkRateLimit } from "@/lib/rate-limit";
 
-export type CreateOrderState =
-  | { status: "idle" }
+export type CreateOrderResult =
   | { status: "error"; message: string }
   | {
       status: "success";
@@ -19,10 +18,12 @@ export type CreateOrderState =
       publicKey: string;
     };
 
-export async function createOrder(
-  _prevState: CreateOrderState,
-  formData: FormData,
-): Promise<CreateOrderState> {
+/**
+ * Called directly from the client with already-validated (react-hook-form +
+ * zod) input, not bound to a native <form action>. Re-validates server-side
+ * regardless — client validation is UX only, never trusted on its own.
+ */
+export async function createOrder(input: unknown): Promise<CreateOrderResult> {
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
   const { success } = await checkRateLimit(`checkout:${ip}`);
   if (!success) {
@@ -32,18 +33,7 @@ export async function createOrder(
     };
   }
 
-  const parsed = checkoutSchema.safeParse({
-    variantId: formData.get("variantId"),
-    qty: formData.get("qty"),
-    customerName: formData.get("customerName"),
-    email: formData.get("email"),
-    phone: formData.get("phone"),
-    deliveryAddress: formData.get("deliveryAddress"),
-    deliveryCity: formData.get("deliveryCity"),
-    deliveryState: formData.get("deliveryState"),
-    notes: formData.get("notes") ?? "",
-  });
-
+  const parsed = checkoutSchema.safeParse(input);
   if (!parsed.success) {
     return {
       status: "error",
@@ -51,15 +41,15 @@ export async function createOrder(
     };
   }
 
-  const input = parsed.data;
+  const parsedInput = parsed.data;
 
   const variant = await db.query.productVariants.findFirst({
-    where: eq(productVariants.id, input.variantId),
+    where: eq(productVariants.id, parsedInput.variantId),
   });
   if (!variant) {
     return { status: "error", message: "That size is no longer available." };
   }
-  if (variant.stockQty < input.qty) {
+  if (variant.stockQty < parsedInput.qty) {
     return {
       status: "error",
       message: `Only ${variant.stockQty} left in this size.`,
@@ -74,24 +64,24 @@ export async function createOrder(
   }
 
   // Price is derived from the DB, never trusted from the client.
-  const amountKobo = product.priceKobo * input.qty;
+  const amountKobo = product.priceKobo * parsedInput.qty;
   const reference = generatePaystackReference();
   const orderNumber = generateOrderNumber();
 
   await db.insert(orders).values({
     orderNumber,
     variantId: variant.id,
-    qty: input.qty,
+    qty: parsedInput.qty,
     amountKobo,
     currency: product.currency,
     status: "pending",
-    customerName: input.customerName,
-    email: input.email,
-    phone: input.phone,
-    deliveryAddress: input.deliveryAddress,
-    deliveryCity: input.deliveryCity,
-    deliveryState: input.deliveryState,
-    notes: input.notes || null,
+    customerName: parsedInput.customerName,
+    email: parsedInput.email,
+    phone: parsedInput.phone,
+    deliveryAddress: parsedInput.deliveryAddress,
+    deliveryCity: parsedInput.deliveryCity,
+    deliveryState: parsedInput.deliveryState,
+    notes: parsedInput.notes || null,
     paystackReference: reference,
   });
 
@@ -107,7 +97,7 @@ export async function createOrder(
     status: "success",
     reference,
     amountKobo,
-    email: input.email,
+    email: parsedInput.email,
     publicKey,
   };
 }
