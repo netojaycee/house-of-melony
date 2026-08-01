@@ -50,6 +50,19 @@ export async function getVariantWithProduct(variantId: string) {
   return { variant, product };
 }
 
+export async function getFirstProduct() {
+  const product = await db.query.products.findFirst();
+  if (!product) return null;
+
+  const variants = await db
+    .select()
+    .from(productVariants)
+    .where(eq(productVariants.productId, product.id))
+    .orderBy(asc(productVariants.sortOrder));
+
+  return { ...product, variants };
+}
+
 export function formatNaira(kobo: number): string {
   return `₦${(kobo / 100).toLocaleString("en-NG")}`;
 }

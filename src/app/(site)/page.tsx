@@ -1,9 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getActiveProduct, formatNaira } from "@/lib/data/product";
+import { getSiteSettings } from "@/lib/data/settings";
 
 export default async function Home() {
-  const product = await getActiveProduct();
+  const [product, settings] = await Promise.all([
+    getActiveProduct(),
+    getSiteSettings(),
+  ]);
 
   return (
     <main className="flex flex-1 flex-col">
@@ -21,12 +25,9 @@ export default async function Home() {
             House of Melony
           </p>
           <h1 className="font-display max-w-3xl text-5xl italic text-melony-cream sm:text-7xl">
-            Òkè Wúrà
+            {settings.heroHeadline}
           </h1>
-          <p className="max-w-md text-melony-cream/70">
-            Golden hills. A fourteen-year journey back to where it started —
-            needle, fabric, and patience.
-          </p>
+          <p className="max-w-md text-melony-cream/70">{settings.heroSubcopy}</p>
         </div>
         {product && (
           <Link
