@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function SiteFooter() {
   return (
     <footer className="border-t border-melony-gold/15 px-6 py-10 text-center">
@@ -5,6 +7,12 @@ export function SiteFooter() {
       <p className="mt-2 text-sm text-melony-cream/60">
         Handcrafted adire, made in Nigeria · Nationwide delivery
       </p>
+      <Link
+        href="/track"
+        className="mt-4 inline-block text-sm text-melony-gold underline-offset-4 hover:underline"
+      >
+        Track your order
+      </Link>
       <p className="mt-6 text-xs text-melony-cream/40">
         © {new Date().getFullYear()} House of Melony. All rights reserved.
       </p>

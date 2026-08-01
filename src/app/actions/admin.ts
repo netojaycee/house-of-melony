@@ -14,6 +14,7 @@ import {
 } from "@/lib/db/schema";
 import { uploadProductImage, deleteProductImage } from "@/lib/r2";
 import { sendStatusUpdateEmail } from "@/lib/email/send-order-emails";
+import { isValidTransition } from "@/lib/order-status";
 
 const notifiableStatuses = new Set(["fulfilled", "shipped", "delivered"]);
 
@@ -28,21 +29,39 @@ function revalidateProductPages() {
   revalidatePath("/product/[slug]", "page");
 }
 
-export async function updateOrderStatus(orderId: string, status: OrderStatus) {
+export type UpdateOrderStatusResult =
+  | { status: "success" }
+  | { status: "error"; message: string };
+
+export async function updateOrderStatus(
+  orderId: string,
+  status: OrderStatus,
+): Promise<UpdateOrderStatusResult> {
   await requireAdmin();
   if (!orderStatusValues.includes(status)) {
-    throw new Error("Invalid status");
+    return { status: "error", message: "Invalid status." };
   }
 
   const existing = await db.query.orders.findFirst({ where: eq(orders.id, orderId) });
-  if (!existing) throw new Error("Order not found");
+  if (!existing) return { status: "error", message: "Order not found." };
+
+  if (existing.status === status) {
+    return { status: "success" };
+  }
+
+  if (!isValidTransition(existing.status, status)) {
+    return {
+      status: "error",
+      message: `Can't move an order from "${existing.status}" to "${status}".`,
+    };
+  }
 
   await db
     .update(orders)
     .set({ status, updatedAt: new Date() })
     .where(eq(orders.id, orderId));
 
-  if (existing.status !== status && notifiableStatuses.has(status)) {
+  if (notifiableStatuses.has(status)) {
     await sendStatusUpdateEmail({
       orderNumber: existing.orderNumber,
       customerName: existing.customerName,
@@ -53,6 +72,8 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
 
   revalidatePath("/admin");
   revalidatePath(`/admin/orders/${orderId}`);
+
+  return { status: "success" };
 }
 
 export type UpdateProductState = { status: "idle" | "success" | "error"; message?: string };

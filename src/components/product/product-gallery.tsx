@@ -52,7 +52,7 @@ export function ProductGallery({
 
   return (
     <div className="flex flex-col gap-3">
-      <Carousel setApi={setApi} className="w-full">
+      <Carousel setApi={setApi} opts={{ loop: true }} className="w-full">
         <CarouselContent className="-ml-0">
           {images.map((src, i) => (
             <CarouselItem key={src} className="pl-0">
