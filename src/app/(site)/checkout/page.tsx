@@ -2,6 +2,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getVariantWithProduct, formatNaira } from "@/lib/data/product";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
+import { ImagePlaceholder } from "@/components/product/image-placeholder";
 
 export const metadata = {
   title: "Checkout",
@@ -39,12 +40,17 @@ export default async function CheckoutPage({
     <main className="mx-auto flex w-full max-w-4xl flex-col gap-12 px-6 py-16 sm:flex-row sm:py-24">
       <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-melony-gold/15 bg-melony-black-soft p-6 sm:max-w-xs">
         <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-melony-gold/20">
-          <Image
-            src={product.images[0] ?? "/brand/logo.jpeg"}
-            alt={product.name}
-            fill
-            className="object-cover"
-          />
+          {product.images[0] ? (
+            <Image
+              src={product.images[0]}
+              alt={product.name}
+              fill
+              sizes="(max-width: 640px) 100vw, 320px"
+              className="object-cover"
+            />
+          ) : (
+            <ImagePlaceholder />
+          )}
         </div>
         <div>
           <p className="font-display text-lg text-melony-cream">

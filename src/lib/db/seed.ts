@@ -21,7 +21,7 @@ Built to last beyond a season, the way a hill stands no matter what moves around
 Òkè Wúrà. Worn once, remembered always.`,
       priceKobo: 8500000,
       currency: "NGN",
-      images: ["/brand/logo.jpeg"],
+      images: [],
       active: true,
     })
     .onConflictDoNothing({ target: products.slug })

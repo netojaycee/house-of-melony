@@ -1,8 +1,8 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getProductBySlug, formatNaira } from "@/lib/data/product";
 import { VariantSelector } from "@/components/product/variant-selector";
+import { ProductGallery } from "@/components/product/product-gallery";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -66,14 +66,8 @@ export default async function ProductPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="relative aspect-square w-full max-w-xl shrink-0 overflow-hidden rounded-2xl border border-melony-gold/20 bg-melony-black-soft sm:w-1/2">
-        <Image
-          src={product.images[0] ?? "/brand/logo.jpeg"}
-          alt={product.name}
-          fill
-          priority
-          className="object-cover"
-        />
+      <div className="w-full max-w-xl shrink-0 sm:w-1/2">
+        <ProductGallery images={product.images} alt={product.name} />
       </div>
 
       <div className="flex flex-1 flex-col gap-6">

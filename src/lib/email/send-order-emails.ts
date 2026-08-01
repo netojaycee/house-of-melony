@@ -8,7 +8,7 @@ import OrderNotificationEmail from "./templates/order-notification";
  * or any other custom domain).
  */
 function emailFrom(): string {
-  return process.env.EMAIL_FROM ?? "House of Melony <noreply@johnedeh.com>";
+  return "House of Melony " + (process.env.EMAIL_FROM ?? "House of Melony <noreply@johnedeh.com>");
 }
 
 type OrderEmailPayload = {

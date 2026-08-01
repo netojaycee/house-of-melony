@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getActiveProduct, formatNaira } from "@/lib/data/product";
 import { getSiteSettings } from "@/lib/data/settings";
+import { ImagePlaceholder } from "@/components/product/image-placeholder";
 
 export const metadata = { alternates: { canonical: "/" } };
 
@@ -70,12 +71,17 @@ export default async function Home() {
         <section className="px-6 py-20">
           <div className="mx-auto flex max-w-5xl flex-col items-center gap-10 rounded-2xl border border-melony-gold/15 bg-melony-black-soft p-10 sm:flex-row sm:p-14">
             <div className="relative aspect-square w-full max-w-xs shrink-0 overflow-hidden rounded-xl border border-melony-gold/20">
-              <Image
-                src={product.images[0] ?? "/brand/logo.jpeg"}
-                alt={product.name}
-                fill
-                className="object-cover"
-              />
+              {product.images[0] ? (
+                <Image
+                  src={product.images[0]}
+                  alt={product.name}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 320px"
+                  className="object-cover"
+                />
+              ) : (
+                <ImagePlaceholder />
+              )}
             </div>
             <div className="flex flex-col gap-4 text-center sm:text-left">
               <p className="text-sm tracking-[0.25em] text-melony-gold uppercase">
