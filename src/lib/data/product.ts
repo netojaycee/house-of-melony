@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { asc, eq } from "drizzle-orm";
 import { products, productVariants } from "@/lib/db/schema";
+import { isUuid } from "@/lib/utils";
 
 export async function getActiveProduct() {
   const product = await db.query.products.findFirst({
@@ -37,6 +38,8 @@ export async function getProductBySlug(slug: string) {
 }
 
 export async function getVariantWithProduct(variantId: string) {
+  if (!isUuid(variantId)) return null;
+
   const variant = await db.query.productVariants.findFirst({
     where: eq(productVariants.id, variantId),
   });

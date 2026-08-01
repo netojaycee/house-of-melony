@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { desc, eq } from "drizzle-orm";
 import { orders, productVariants, products } from "@/lib/db/schema";
+import { isUuid } from "@/lib/utils";
 
 export async function getOrderByReference(reference: string) {
   const order = await db.query.orders.findFirst({
@@ -25,6 +26,8 @@ export async function listOrders() {
 }
 
 export async function getOrderById(id: string) {
+  if (!isUuid(id)) return null;
+
   const order = await db.query.orders.findFirst({
     where: eq(orders.id, id),
   });

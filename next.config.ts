@@ -1,8 +1,16 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV !== "production";
+
+// React/Turbopack need eval() in dev for Fast Refresh and stack traces;
+// production never uses eval(), so we only relax the policy locally.
+const scriptSrc = isDev
+  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://*.paystack.co"
+  : "script-src 'self' 'unsafe-inline' https://js.paystack.co https://*.paystack.co";
+
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://js.paystack.co https://*.paystack.co",
+  scriptSrc,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self' data:",
