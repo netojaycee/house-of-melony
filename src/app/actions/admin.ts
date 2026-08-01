@@ -13,6 +13,9 @@ import {
   type OrderStatus,
 } from "@/lib/db/schema";
 import { uploadProductImage, deleteProductImage } from "@/lib/r2";
+import { sendStatusUpdateEmail } from "@/lib/email/send-order-emails";
+
+const notifiableStatuses = new Set(["fulfilled", "shipped", "delivered"]);
 
 async function requireAdmin() {
   const session = await auth();
@@ -30,10 +33,24 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   if (!orderStatusValues.includes(status)) {
     throw new Error("Invalid status");
   }
+
+  const existing = await db.query.orders.findFirst({ where: eq(orders.id, orderId) });
+  if (!existing) throw new Error("Order not found");
+
   await db
     .update(orders)
     .set({ status, updatedAt: new Date() })
     .where(eq(orders.id, orderId));
+
+  if (existing.status !== status && notifiableStatuses.has(status)) {
+    await sendStatusUpdateEmail({
+      orderNumber: existing.orderNumber,
+      customerName: existing.customerName,
+      email: existing.email,
+      status: status as "fulfilled" | "shipped" | "delivered",
+    });
+  }
+
   revalidatePath("/admin");
   revalidatePath(`/admin/orders/${orderId}`);
 }

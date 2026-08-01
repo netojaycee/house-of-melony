@@ -1,6 +1,7 @@
 import { resend } from "./resend";
 import OrderConfirmationEmail from "./templates/order-confirmation";
 import OrderNotificationEmail from "./templates/order-notification";
+import OrderStatusUpdateEmail from "./templates/order-status-update";
 
 /**
  * Falls back to Resend's shared sandbox sender until a custom domain is
@@ -8,7 +9,7 @@ import OrderNotificationEmail from "./templates/order-notification";
  * or any other custom domain).
  */
 function emailFrom(): string {
-  return "House of Melony " + (process.env.EMAIL_FROM ?? "House of Melony <noreply@johnedeh.com>");
+  return process.env.EMAIL_FROM ?? "House of Melony <onboarding@resend.dev>";
 }
 
 type OrderEmailPayload = {
@@ -25,6 +26,39 @@ type OrderEmailPayload = {
   deliveryState: string;
   notes?: string | null;
 };
+
+function trackingUrl(orderNumber: string): string {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  return `${siteUrl}/order/${orderNumber}`;
+}
+
+export async function sendStatusUpdateEmail({
+  orderNumber,
+  customerName,
+  email,
+  status,
+}: {
+  orderNumber: string;
+  customerName: string;
+  email: string;
+  status: "fulfilled" | "shipped" | "delivered";
+}) {
+  try {
+    await resend().emails.send({
+      from: emailFrom(),
+      to: email,
+      subject: `Order update — ${orderNumber}`,
+      react: OrderStatusUpdateEmail({
+        customerName,
+        orderNumber,
+        status,
+        trackingUrl: trackingUrl(orderNumber),
+      }),
+    });
+  } catch (error) {
+    console.error("Failed to send status update email:", error);
+  }
+}
 
 export async function sendOrderEmails(payload: OrderEmailPayload) {
   const amountNaira = payload.amountKobo / 100;
@@ -44,6 +78,7 @@ export async function sendOrderEmails(payload: OrderEmailPayload) {
         qty: payload.qty,
         amountNaira,
         deliveryAddress: fullAddress,
+        trackingUrl: trackingUrl(payload.orderNumber),
       }),
     }),
     notificationTo

@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
-import { getOrderByReference } from "@/lib/data/orders";
+import { getOrderByOrderNumber } from "@/lib/data/orders";
 import { formatNaira } from "@/lib/data/product";
 import { PendingPoller } from "@/components/order/pending-poller";
 
 export const metadata = {
-  title: "Order status",
+  title: "Track your order",
   robots: { index: false, follow: false },
 };
 
@@ -25,6 +25,10 @@ const statusCopy: Record<string, { heading: string; body: string }> = {
     heading: "Your order is on its way!",
     body: "Your Òkè Wúrà set has shipped.",
   },
+  delivered: {
+    heading: "Delivered!",
+    body: "Your Òkè Wúrà set has arrived. Thank you for choosing House of Melony.",
+  },
   failed: {
     heading: "Payment didn't go through.",
     body: "No charge was made. Please go back and try again, or reach out if you keep having trouble.",
@@ -34,10 +38,10 @@ const statusCopy: Record<string, { heading: string; body: string }> = {
 export default async function OrderStatusPage({
   params,
 }: {
-  params: Promise<{ reference: string }>;
+  params: Promise<{ orderNumber: string }>;
 }) {
-  const { reference } = await params;
-  const result = await getOrderByReference(reference);
+  const { orderNumber } = await params;
+  const result = await getOrderByOrderNumber(orderNumber);
   if (!result) notFound();
   const { order, variant, product } = result;
 

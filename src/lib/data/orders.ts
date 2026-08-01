@@ -3,9 +3,9 @@ import { desc, eq } from "drizzle-orm";
 import { orders, productVariants, products } from "@/lib/db/schema";
 import { isUuid } from "@/lib/utils";
 
-export async function getOrderByReference(reference: string) {
+export async function getOrderByOrderNumber(orderNumber: string) {
   const order = await db.query.orders.findFirst({
-    where: eq(orders.paystackReference, reference),
+    where: eq(orders.orderNumber, orderNumber),
   });
   if (!order) return null;
 

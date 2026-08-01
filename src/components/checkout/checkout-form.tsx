@@ -57,10 +57,10 @@ export function CheckoutForm({
       ref: result.reference,
       currency: "NGN",
       onSuccess: () => {
-        router.push(`/order/${result.reference}`);
+        router.push(`/order/${result.orderNumber}`);
       },
       onCancel: () => {
-        router.push(`/order/${result.reference}`);
+        router.push(`/order/${result.orderNumber}`);
       },
     });
   }

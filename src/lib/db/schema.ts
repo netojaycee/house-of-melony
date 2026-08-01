@@ -42,6 +42,7 @@ export const orderStatusValues = [
   "failed",
   "fulfilled",
   "shipped",
+  "delivered",
 ] as const;
 export type OrderStatus = (typeof orderStatusValues)[number];
 

@@ -13,6 +13,7 @@ export type CreateOrderResult =
   | {
       status: "success";
       reference: string;
+      orderNumber: string;
       amountKobo: number;
       email: string;
       publicKey: string;
@@ -96,6 +97,7 @@ export async function createOrder(input: unknown): Promise<CreateOrderResult> {
   return {
     status: "success",
     reference,
+    orderNumber,
     amountKobo,
     email: parsedInput.email,
     publicKey,

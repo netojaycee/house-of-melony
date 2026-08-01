@@ -1,5 +1,6 @@
 import {
   Body,
+  Button,
   Container,
   Head,
   Heading,
@@ -17,6 +18,7 @@ type OrderConfirmationEmailProps = {
   qty: number;
   amountNaira: number;
   deliveryAddress: string;
+  trackingUrl: string;
 };
 
 export default function OrderConfirmationEmail({
@@ -27,6 +29,7 @@ export default function OrderConfirmationEmail({
   qty,
   amountNaira,
   deliveryAddress,
+  trackingUrl,
 }: OrderConfirmationEmailProps) {
   return (
     <Html>
@@ -103,11 +106,26 @@ export default function OrderConfirmationEmail({
             </Text>
           </Section>
 
+          <Button
+            href={trackingUrl}
+            style={{
+              backgroundColor: "#c6952f",
+              color: "#0b0a08",
+              fontSize: "14px",
+              fontWeight: 600,
+              padding: "12px 24px",
+              borderRadius: "999px",
+              marginTop: "28px",
+            }}
+          >
+            Track your order
+          </Button>
+
           <Text
             style={{
               color: "#b8a47d",
               fontSize: "13px",
-              marginTop: "32px",
+              marginTop: "24px",
               fontStyle: "italic",
             }}
           >
