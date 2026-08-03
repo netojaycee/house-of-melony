@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { siteSettings } from "@/lib/db/schema";
 
 const defaults = {
-  heroHeadline: "Òkè Wúrà",
+  heroHeadline: "Òkè Wúrà Set",
   heroSubcopy:
     "Golden hills. A fourteen-year journey back to where it started — needle, fabric, and patience.",
   announcement: null as string | null,

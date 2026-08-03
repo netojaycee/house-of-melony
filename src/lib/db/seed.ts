@@ -40,7 +40,7 @@ Built to last beyond a season, the way a hill stands no matter what moves around
     .values([
       {
         productId: existingProduct.id,
-        label: "UK 10–13 (to be confirmed)",
+        label: "UK 8–13 (to be confirmed)",
         sku: "OWS-A",
         stockQty: 10,
         sortOrder: 1,
