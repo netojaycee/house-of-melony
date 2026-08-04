@@ -44,7 +44,7 @@ export function ProductGallery({
           fill
           priority
           sizes="(max-width: 640px) 100vw, 50vw"
-          className="object-cover"
+          className="object-contain"
         />
       </div>
     );
@@ -63,7 +63,7 @@ export function ProductGallery({
                   fill
                   priority={i === 0}
                   sizes="(max-width: 640px) 100vw, 50vw"
-                  className="object-cover"
+                  className="object-contain"
                 />
               </div>
             </CarouselItem>
