@@ -115,7 +115,7 @@ export async function createOrder(input: unknown): Promise<CreateOrderResult> {
     };
   }
 
-  const whatsappNumber = process.env.WHATSAPP_NUMBER?.replace(/\D/g, "");
+  const whatsappNumber = process.env.WHATSAPP_NUMBER?.replace(/\D/g, "") || 2348055665200;
   if (!whatsappNumber) {
     return {
       status: "error",

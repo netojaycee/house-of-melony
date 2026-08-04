@@ -51,8 +51,7 @@ export function CheckoutForm({
       if (launchedRef.current === result.orderNumber) return;
       launchedRef.current = result.orderNumber;
 
-      window.open(result.whatsappUrl, "_blank", "noopener,noreferrer");
-      router.push(`/order/${result.orderNumber}`);
+      window.location.href = result.whatsappUrl;
       return;
     }
 
