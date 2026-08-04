@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getVariantWithProduct, formatNaira } from "@/lib/data/product";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { ImagePlaceholder } from "@/components/product/image-placeholder";
+import { getPaymentMode } from "@/lib/payment-mode";
 
 export const metadata = {
   title: "Checkout",
@@ -72,7 +73,11 @@ export default async function CheckoutPage({
         <h1 className="font-display mb-6 text-2xl text-melony-cream">
           Delivery details
         </h1>
-        <CheckoutForm variantId={variant.id} qty={qty} />
+        <CheckoutForm
+          variantId={variant.id}
+          qty={qty}
+          paymentMode={getPaymentMode()}
+        />
       </div>
     </main>
   );

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { orders, productVariants, products } from "@/lib/db/schema";
+import { orders } from "@/lib/db/schema";
 import { verifyWebhookSignature, verifyTransaction } from "@/lib/paystack";
-import { sendOrderEmails } from "@/lib/email/send-order-emails";
+import { applyOrderPaidSideEffects } from "@/lib/order-paid";
 
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
@@ -41,30 +41,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  const [variant] = await db
-    .update(productVariants)
-    .set({ stockQty: sql`greatest(${productVariants.stockQty} - ${updatedOrder.qty}, 0)` })
-    .where(eq(productVariants.id, updatedOrder.variantId))
-    .returning();
-
-  const product = variant
-    ? await db.query.products.findFirst({ where: eq(products.id, variant.productId) })
-    : null;
-
-  await sendOrderEmails({
-    orderNumber: updatedOrder.orderNumber,
-    customerName: updatedOrder.customerName,
-    email: updatedOrder.email,
-    phone: updatedOrder.phone,
-    productName: product?.name ?? "Òkè Wúrà Set",
-    variantLabel: variant?.label ?? "",
-    qty: updatedOrder.qty,
-    amountKobo: updatedOrder.amountKobo,
-    deliveryAddress: updatedOrder.deliveryAddress,
-    deliveryCity: updatedOrder.deliveryCity,
-    deliveryState: updatedOrder.deliveryState,
-    notes: updatedOrder.notes,
-  });
+  await applyOrderPaidSideEffects(updatedOrder);
 
   return NextResponse.json({ received: true });
 }

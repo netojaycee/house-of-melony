@@ -59,7 +59,7 @@ Built to last beyond a season, the way a hill stands no matter what moves around
     .insert(siteSettings)
     .values({
       id: 1,
-      heroHeadline: "Òkè Wúrà",
+      heroHeadline: "Òkè Wúrà Set",
       heroSubcopy: "Worn once, remembered always.",
       announcement: null,
     })

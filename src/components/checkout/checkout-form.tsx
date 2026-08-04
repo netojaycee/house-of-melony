@@ -19,9 +19,11 @@ const errorClass = "mt-1 text-sm text-red-400";
 export function CheckoutForm({
   variantId,
   qty,
+  paymentMode,
 }: {
   variantId: string;
   qty: number;
+  paymentMode: "paystack" | "manual";
 }) {
   const router = useRouter();
   const launchedRef = useRef<string | null>(null);
@@ -42,6 +44,15 @@ export function CheckoutForm({
 
     if (result.status === "error") {
       setRootError(result.message);
+      return;
+    }
+
+    if (result.mode === "manual") {
+      if (launchedRef.current === result.orderNumber) return;
+      launchedRef.current = result.orderNumber;
+
+      window.open(result.whatsappUrl, "_blank", "noopener,noreferrer");
+      router.push(`/order/${result.orderNumber}`);
       return;
     }
 
@@ -152,7 +163,11 @@ export function CheckoutForm({
         whileTap={isSubmitting ? undefined : { scale: 0.98 }}
         className={`mt-2 ${siteButtonClass("primary", "lg")}`}
       >
-        {isSubmitting ? "Preparing payment…" : "Continue to payment"}
+        {isSubmitting
+          ? "Preparing order…"
+          : paymentMode === "manual"
+            ? "Order via WhatsApp"
+            : "Continue to payment"}
       </motion.button>
     </form>
   );

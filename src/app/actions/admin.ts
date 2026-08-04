@@ -15,6 +15,7 @@ import {
 import { uploadProductImage, deleteProductImage } from "@/lib/r2";
 import { sendStatusUpdateEmail } from "@/lib/email/send-order-emails";
 import { isValidTransition } from "@/lib/order-status";
+import { applyOrderPaidSideEffects } from "@/lib/order-paid";
 
 const notifiableStatuses = new Set(["fulfilled", "shipped", "delivered"]);
 
@@ -60,6 +61,10 @@ export async function updateOrderStatus(
     .update(orders)
     .set({ status, updatedAt: new Date() })
     .where(eq(orders.id, orderId));
+
+  if (status === "paid") {
+    await applyOrderPaidSideEffects(existing);
+  }
 
   if (notifiableStatuses.has(status)) {
     await sendStatusUpdateEmail({

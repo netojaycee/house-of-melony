@@ -7,16 +7,25 @@ import { eq } from "drizzle-orm";
 import { checkoutSchema } from "@/lib/validation/checkout";
 import { generateOrderNumber, generatePaystackReference } from "@/lib/order-number";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getPaymentMode } from "@/lib/payment-mode";
+import { formatNaira } from "@/lib/data/product";
 
 export type CreateOrderResult =
   | { status: "error"; message: string }
   | {
       status: "success";
+      mode: "paystack";
       reference: string;
       orderNumber: string;
       amountKobo: number;
       email: string;
       publicKey: string;
+    }
+  | {
+      status: "success";
+      mode: "manual";
+      orderNumber: string;
+      whatsappUrl: string;
     };
 
 /**
@@ -86,20 +95,55 @@ export async function createOrder(input: unknown): Promise<CreateOrderResult> {
     paystackReference: reference,
   });
 
-  const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
-  if (!publicKey) {
+  if (getPaymentMode() === "paystack") {
+    const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
+    if (!publicKey) {
+      return {
+        status: "error",
+        message: "Payments aren't configured yet. Please try again later.",
+      };
+    }
+
     return {
-      status: "error",
-      message: "Payments aren't configured yet. Please try again later.",
+      status: "success",
+      mode: "paystack",
+      reference,
+      orderNumber,
+      amountKobo,
+      email: parsedInput.email,
+      publicKey,
     };
   }
 
+  const whatsappNumber = process.env.WHATSAPP_NUMBER?.replace(/\D/g, "");
+  if (!whatsappNumber) {
+    return {
+      status: "error",
+      message: "Ordering isn't configured yet. Please try again later.",
+    };
+  }
+
+  const message = [
+    `Hi House of Melony! I'd like to order:`,
+    ``,
+    `${product.name} — ${variant.label} × ${parsedInput.qty}`,
+    `Order: ${orderNumber}`,
+    `Total: ${formatNaira(amountKobo)}`,
+    ``,
+    `Name: ${parsedInput.customerName}`,
+    `Phone: ${parsedInput.phone}`,
+    `Delivery: ${parsedInput.deliveryAddress}, ${parsedInput.deliveryCity}, ${parsedInput.deliveryState}`,
+    ...(parsedInput.notes ? [`Notes: ${parsedInput.notes}`] : []),
+    ``,
+    `Please confirm payment details.`,
+  ].join("\n");
+
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+
   return {
     status: "success",
-    reference,
+    mode: "manual",
     orderNumber,
-    amountKobo,
-    email: parsedInput.email,
-    publicKey,
+    whatsappUrl,
   };
 }
